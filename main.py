@@ -1,3 +1,4 @@
+from email import message
 from re import T
 import discord as dc
 import random
@@ -7,8 +8,7 @@ trys2=0
 resultnum=0
 left_trys=0
 started=False
-
-
+double=0
 
 class MyClient(dc.Client):
     async def on_ready(self):
@@ -61,19 +61,22 @@ class MyClient(dc.Client):
             else: 
                 await message.channel.send("Verloren. Mit der Zahl "+str(result)+" hättest du gewonnen.")
         if message.content.startswith("lb!startZahlenraten "):
-           global trys, trys2, resultnum, left_trys
-           range=message.content.split(" ")[1]
-           trys=message.content.split(" ")[2]
-           try:
+            global trys, trys2, resultnum, left_trys
+            range=message.content.split(" ")[1]
+            trys=message.content.split(" ")[2]
+            try:
                trys=int(trys)
                range=int(range)
-           except:
+            except:
                await message.channel.send("Fehler! Bitte nur ganze Zahlen eingeben!")
                return
-           resultnum=random.randint(0,range)
-           await message.channel.send("Errate eine Zahl zwischen 0 und "+str(range)+" mit weniger als "+str(trys)+" Versuche.")
-           global started
-           started=True
+            if trys==0:
+                await message.channel.send("Dein Ernst? Wie willst du mit 0 Versuchen eine Zahl erraten?")
+                return
+            resultnum=random.randint(0,range)
+            await message.channel.send("Errate eine Zahl zwischen 0 und "+str(range)+" mit weniger als "+str(trys)+" Versuche.")
+            global started
+            started=True
         if message.content.startswith("lb!zahlenraten "):
             if started==False:
                 await message.channel.send("Zahlenraten bitte erst starten!")
@@ -111,5 +114,23 @@ class MyClient(dc.Client):
                     resultnum=0
                     left_trys=0
                     started=False
+    async def on_typing(self, channel, user, when):
+        global double
+        if double==0:
+            double=1
+        elif double==1:
+            double=2
+        elif double==2:
+            double=3
+        elif double==3:
+            double=4
+        elif double==4:
+            double=0
+            await channel.send("Jetzt sende doch endlich mal deine Nachricht @"+user.name+". Was dauert da so lange? Romane lese ich nicht gerne!")
+    async def on_message_delete(self, message):
+        pass
+    async def on_message_edit(self, before, after):
+        pass
+    ##Aufgabe: Mod tool um user zu beobachten, die mist bauen 
 client=MyClient()
 client.run("OTg5OTMxMDgxOTc5NTMxMzE1.GF7Q5V.fQ0YOKiFI63X9Z3E67c3JbiqJ4UfYsO7fpdtVo")
