@@ -1,14 +1,56 @@
-from email import message
 from re import T
 import discord as dc
 import random
+import json
 
-trys=0
-trys2=0
-resultnum=0
-left_trys=0
-started=False
 double=0
+
+def get_config(name):
+    with open("config.json", "r") as f:
+        json_file=json.load(f)
+    return json_file[name]
+
+def write_user_in_config(user,trys,resultnum, started):
+    jsonFile = open("config.json", "r") # Open the JSON file for reading
+    data = json.load(jsonFile) # Read the JSON into the buffer
+    jsonFile.close() # Close the JSON file
+    data[user]={
+        "trys": trys,
+        "trys2": "0",
+        "resultnum": resultnum,
+        "left_trys": "0",
+        "started": started
+    }
+    
+    with open("config.json", "w+") as f:
+        json.dump(data,f)
+
+def write_new_data_in_user(user, trys2, left_trys):
+    jsonFile = open("config.json", "r") # Open the JSON file for reading
+    data = json.load(jsonFile) # Read the JSON into the buffer
+    jsonFile.close() # Close the JSON file
+    
+    for i in data:
+        if i==user:
+            workuser=data[user]
+            workuser["trys2"]=trys2
+            workuser["left_trys"]=left_trys
+            data[user]=workuser
+    
+    jsonFile = open("config.json", "w+")
+    jsonFile.write(json.dumps(data))
+    jsonFile.close()
+
+def delte_json(user):
+    jsonFile = open("config.json", "r") # Open the JSON file for reading
+    data = json.load(jsonFile) # Read the JSON into the buffer
+    jsonFile.close() # Close the JSON file
+
+    data.pop(user)
+    
+    jsonFile = open("config.json", "w+")
+    jsonFile.write(json.dumps(data))
+    jsonFile.close()
 
 class MyClient(dc.Client):
     async def on_ready(self):
@@ -61,7 +103,6 @@ class MyClient(dc.Client):
             else: 
                 await message.channel.send("Verloren. Mit der Zahl "+str(result)+" hättest du gewonnen.")
         if message.content.startswith("lb!startZahlenraten "):
-            global trys, trys2, resultnum, left_trys
             range=message.content.split(" ")[1]
             trys=message.content.split(" ")[2]
             try:
@@ -75,9 +116,15 @@ class MyClient(dc.Client):
                 return
             resultnum=random.randint(0,range)
             await message.channel.send("Errate eine Zahl zwischen 0 und "+str(range)+" mit weniger als "+str(trys)+" Versuche.")
-            global started
             started=True
+            write_user_in_config(str(message.author), trys, resultnum, started)
         if message.content.startswith("lb!zahlenraten "):
+            trys=int(get_config(str(message.author))["trys"])
+            trys2=int(get_config(str(message.author))["trys2"])
+            resultnum=int(get_config(str(message.author))["resultnum"])
+            left_trys=int(get_config(str(message.author))["left_trys"])
+            started=get_config(str(message.author))["started"]
+
             if started==False:
                 await message.channel.send("Zahlenraten bitte erst starten!")
             else:
@@ -87,6 +134,7 @@ class MyClient(dc.Client):
                     guess_param=int(guess)
                 except:
                     await message.channel.send("Fehler! Bitte nur ganze Zahlen eingeben!")
+                    delte_json(str(message.author))
                     return
                 trys2=trys2+1
                 left_trys=int(trys)-int(trys2)
@@ -103,10 +151,13 @@ class MyClient(dc.Client):
                     resultnum=0
                     left_trys=0
                     started=False
+                    delte_json(str(message.author))
                 elif guess_param>resultnum:
                     await message.channel.send("Die gesuchte Zahl ist kleiner. Du hast noch "+left_trys_str)
+                    write_new_data_in_user(str(message.author),trys2, left_trys)
                 elif guess_param<resultnum:
                     await message.channel.send("Die gesuchte Zahl ist größer. Du hast noch "+left_trys_str)
+                    write_new_data_in_user(str(message.author),trys2, left_trys)
                 elif guess_param==resultnum:
                     await message.channel.send("Du hast gewonnen!!! Du hattest noch "+left_trys_str)
                     trys=0
@@ -114,17 +165,13 @@ class MyClient(dc.Client):
                     resultnum=0
                     left_trys=0
                     started=False
+                    delte_json(str(message.author))
+
     async def on_typing(self, channel, user, when):
         global double
-        if double==0:
-            double=1
-        elif double==1:
-            double=2
-        elif double==2:
-            double=3
-        elif double==3:
-            double=4
-        elif double==4:
+        if not double==4:
+            double=double+1
+        else:
             double=0
             await channel.send("Jetzt sende doch endlich mal deine Nachricht @"+user.name+". Was dauert da so lange? Romane lese ich nicht gerne!")
     async def on_message_delete(self, message):
@@ -132,5 +179,6 @@ class MyClient(dc.Client):
     async def on_message_edit(self, before, after):
         pass
     ##Aufgabe: Mod tool um user zu beobachten, die mist bauen 
+
 client=MyClient()
 client.run("OTg5OTMxMDgxOTc5NTMxMzE1.GF7Q5V.fQ0YOKiFI63X9Z3E67c3JbiqJ4UfYsO7fpdtVo")
