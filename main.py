@@ -1,3 +1,4 @@
+from email import message
 from re import T
 import discord as dc
 import random
@@ -47,6 +48,19 @@ def delte_json(user):
     jsonFile.close() # Close the JSON file
 
     data.pop(user)
+
+    jsonFile = open("config.json", "w+")
+    jsonFile.write(json.dumps(data))
+    jsonFile.close()
+
+def save_kick_count(count, user):
+    jsonFile = open("config.json", "r") # Open the JSON file for reading
+    data = json.load(jsonFile) # Read the JSON into the buffer
+    jsonFile.close() # Close the JSON file
+    
+    users=data["kick_user"]
+    users[user]=count
+    data["kick_user"]=users
     
     jsonFile = open("config.json", "w+")
     jsonFile.write(json.dumps(data))
@@ -58,25 +72,25 @@ class MyClient(dc.Client):
     async def on_message(self, message):
         if message.author==client.user:
             return
-        if message.content.startswith("Hallo bot"):
+        elif message.content.startswith("Hallo bot"):
             await message.channel.send("Hallo wie geht es dir?")
-        if message.content.startswith("Tschüss bot"):
+        elif message.content.startswith("Tschüss bot"):
             await message.channel.send("Auf Wiedersehen. Hoffentlich hast du deine Langeweile überwunden. Komm bald wieder!")
-        if message.content=="lb!help":
+        elif message.content=="lb!help":
             embed=dc.Embed(title="Hilfe", color=0xFF5733)
             embed.add_field(name="lb!helpRoulette", value="Roulette spielen", inline=False)
             embed.add_field(name="lb!helpZahlenraten", value="Zahlenraten spielen", inline=False)
             await message.channel.send(embed=embed)    
-        if message.content=="lb!helpRoulette":
+        elif message.content=="lb!helpRoulette":
             embed=dc.Embed(title="Hilfe Roulette spielen", color=0xFF5733)
             embed.add_field(name="lb!roulette {bid}", value="Roulette spielen, {bid} ist der Wert, auf den geboten wird: red, black oder 0-36", inline=False)
             await message.channel.send(embed=embed) 
-        if message.content=="lb!helpZahlenraten":
+        elif message.content=="lb!helpZahlenraten":
             embed=dc.Embed(title="Zahlenraten spielen", color=0xFF5733)
             embed.add_field(name="lb!startZahlenraten {range} {trys}", value="Zahlenraten starten: {range}=höchste Zahl des Zahlenbereichs, in dem die Zahl liegt; {trys} maximale Anzahl an Versuchen zum erraten der Zahl", inline=False)
             embed.add_field(name="lb!zahlenraten {guess}", value="Zahlenraten spielen: {guess}=die geratene Zahl", inline=False)
             await message.channel.send(embed=embed)    
-        if message.content.startswith("lb!roulette"):
+        elif message.content.startswith("lb!roulette"):
             bid=message.content.split(" ")[1]
             bid_param=-3
             if bid.lower()=="black":
@@ -102,7 +116,7 @@ class MyClient(dc.Client):
                 await message.channel.send("$$$$ Du hast Gewonnen $$$$ "+str(result))
             else: 
                 await message.channel.send("Verloren. Mit der Zahl "+str(result)+" hättest du gewonnen.")
-        if message.content.startswith("lb!startZahlenraten "):
+        elif message.content.startswith("lb!startZahlenraten "):
             range=message.content.split(" ")[1]
             trys=message.content.split(" ")[2]
             try:
@@ -118,7 +132,7 @@ class MyClient(dc.Client):
             await message.channel.send("Errate eine Zahl zwischen 0 und "+str(range)+" mit weniger als "+str(trys)+" Versuche.")
             started=True
             write_user_in_config(str(message.author), trys, resultnum, started)
-        if message.content.startswith("lb!zahlenraten "):
+        elif message.content.startswith("lb!zahlenraten "):
             trys=int(get_config(str(message.author))["trys"])
             trys2=int(get_config(str(message.author))["trys2"])
             resultnum=int(get_config(str(message.author))["resultnum"])
@@ -166,19 +180,38 @@ class MyClient(dc.Client):
                     left_trys=0
                     started=False
                     delte_json(str(message.author))
-
+        elif message.content.startswith("lb!"):
+            await message.channel.send("Das ist mein Prefix. Was gibts? lb!help für Hilfe.")
+        if message.channel.id==801346971678801930 and not message.content==".":
+            await message.delete()
+            try:
+                count=get_config("kick_user")[str(message.author)]
+            except:
+                save_kick_count(0,str(message.author))
+                count=0
+            count=count+1
+            if count==5 and not str(message.author)=="calle20#3187":
+                count=0
+                await message.author.send("Du wurdest vom Langeweile-Server gekickt, weil du zu oft keinen Punkt in den punkte-kanal geschickt hast.")
+                await message.author.kick()
+                
+            else:
+                await message.author.send("Verwarnung! In den Punkte-Kanal auf dem Langeweile-Server solltest du doch nur einfache Punkte schreiben! Noch "+str(5-count)+" Verwarnungen und du wirst gekickt!")
+            save_kick_count(count,str(message.author))
     async def on_typing(self, channel, user, when):
         global double
         if not double==4:
             double=double+1
         else:
             double=0
-            await channel.send("Jetzt sende doch endlich mal deine Nachricht @"+user.name+". Was dauert da so lange? Romane lese ich nicht gerne!")
+            await channel.send("Jetzt sende doch endlich mal deine Nachricht <@"+str(user.id)+">. Was dauert da so lange? Romane lese ich nicht gerne!")
     async def on_message_delete(self, message):
         pass
     async def on_message_edit(self, before, after):
         pass
     ##Aufgabe: Mod tool um user zu beobachten, die mist bauen 
+    async def on_reaction_add(self, reaction, user):
+        await reaction.message.channel.send("Reagiert ")
 
 client=MyClient()
 client.run("OTg5OTMxMDgxOTc5NTMxMzE1.GF7Q5V.fQ0YOKiFI63X9Z3E67c3JbiqJ4UfYsO7fpdtVo")
