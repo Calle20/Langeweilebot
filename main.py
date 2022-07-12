@@ -212,10 +212,7 @@ class MyClient(dc.Client):
             await channel.send("Jetzt sende doch endlich mal deine Nachricht <@"+str(user.id)+">. Was dauert da so lange? Romane lese ich nicht gerne!")
     async def on_raw_reaction_add(self, payload):
         #TODO: Reaction-bot
-        channel=client.get_channel(payload.channel_id)
-        user=client.get_user(payload.user_id)
-        message=await channel.fetch_message(payload.message_id)
-        await message.channel.send("<@"+str(user.id)+"> hat auf "+message.content+" mit "+str(payload.emoji))
+        pass
     async def on_member_join(self,member):
         pass
 
