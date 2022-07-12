@@ -182,7 +182,7 @@ class MyClient(dc.Client):
                     delte_json(str(message.author))
         elif message.content.startswith("lb!"):
             await message.channel.send("Das ist mein Prefix. Was gibts? lb!help für Hilfe.")
-        if message.channel.id==801346971678801930 and not message.content==".":
+        if not message.author.bot and message.channel.id==801346971678801930 and not message.content=="." or message.channel.id==996417869933973504 and not message.content.startswith("lb!"):
             await message.delete()
             try:
                 count=get_config("kick_user")[str(message.author)]
@@ -192,26 +192,32 @@ class MyClient(dc.Client):
             count=count+1
             if count==5 and not str(message.author)=="calle20#3187":
                 count=0
-                await message.author.send("Du wurdest vom Langeweile-Server gekickt, weil du zu oft keinen Punkt in den punkte-kanal geschickt hast.")
+                await message.author.send("Du wurdest vom Langeweile-Server gekickt, weil du in einen Channel etwas verbotenes gesendet hast.")
                 await message.author.kick()
-                
             else:
-                await message.author.send("Verwarnung! In den Punkte-Kanal auf dem Langeweile-Server solltest du doch nur einfache Punkte schreiben! Noch "+str(5-count)+" Verwarnungen und du wirst gekickt!")
+                fail=""
+                if message.channel.id==801346971678801930:
+                    fail="einfache Punkte"
+                else:
+                    fail="Zahlenraten-Befehle schreiben"
+                    await message.author.send("Verwarnung! In den "+str(message.channel)+" auf dem Langeweile-Server solltest du doch nur "+fail+" schreiben! Noch "+str(5-count)+" Verwarnungen und du wirst gekickt!")
             save_kick_count(count,str(message.author))
     async def on_typing(self, channel, user, when):
+        return
         global double
-        if not double==4:
+        if not double==50:
             double=double+1
         else:
             double=0
             await channel.send("Jetzt sende doch endlich mal deine Nachricht <@"+str(user.id)+">. Was dauert da so lange? Romane lese ich nicht gerne!")
-    async def on_message_delete(self, message):
+    async def on_raw_reaction_add(self, payload):
+        #TODO: Reaction-bot
+        channel=client.get_channel(payload.channel_id)
+        user=client.get_user(payload.user_id)
+        message=await channel.fetch_message(payload.message_id)
+        await message.channel.send("<@"+str(user.id)+"> hat auf "+message.content+" mit "+str(payload.emoji))
+    async def on_member_join(self,member):
         pass
-    async def on_message_edit(self, before, after):
-        pass
-    ##Aufgabe: Mod tool um user zu beobachten, die mist bauen 
-    async def on_reaction_add(self, reaction, user):
-        await reaction.message.channel.send("Reagiert ")
 
 client=MyClient()
 client.run("OTg5OTMxMDgxOTc5NTMxMzE1.GF7Q5V.fQ0YOKiFI63X9Z3E67c3JbiqJ4UfYsO7fpdtVo")
