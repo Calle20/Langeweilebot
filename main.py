@@ -1,5 +1,6 @@
-from email import message
+import asyncio
 from re import T
+from time import sleep
 import discord as dc
 import random
 import json
@@ -53,14 +54,14 @@ def delte_json(user):
     jsonFile.write(json.dumps(data))
     jsonFile.close()
 
-def save_kick_count(count, user):
+def save_count(count, user, name):
     jsonFile = open("config.json", "r") # Open the JSON file for reading
     data = json.load(jsonFile) # Read the JSON into the buffer
     jsonFile.close() # Close the JSON file
     
-    users=data["kick_user"]
+    users=data[name]
     users[user]=count
-    data["kick_user"]=users
+    data[name]=users
     
     jsonFile = open("config.json", "w+")
     jsonFile.write(json.dumps(data))
@@ -187,7 +188,7 @@ class MyClient(dc.Client):
             try:
                 count=get_config("kick_user")[str(message.author)]
             except:
-                save_kick_count(0,str(message.author))
+                save_count(0,str(message.author),"kick_count")
                 count=0
             count=count+1
             if count==5 and not str(message.author)=="calle20#3187":
@@ -201,15 +202,19 @@ class MyClient(dc.Client):
                 else:
                     fail="Zahlenraten-Befehle schreiben"
                     await message.author.send("Verwarnung! In den "+str(message.channel)+" auf dem Langeweile-Server solltest du doch nur "+fail+" schreiben! Noch "+str(5-count)+" Verwarnungen und du wirst gekickt!")
-            save_kick_count(count,str(message.author))
+            save_count(count,str(message.author), "kick_user")
     async def on_typing(self, channel, user, when):
-        return
-        global double
-        if not double==50:
+        try:
+            double=get_config("double_counter")[str(user)]
+        except:
+            save_count(0,str(user),"double_counter")
+            double=0
+        if not double==4:
             double=double+1
         else:
             double=0
             await channel.send("Jetzt sende doch endlich mal deine Nachricht <@"+str(user.id)+">. Was dauert da so lange? Romane lese ich nicht gerne!")
+        save_count(double,str(user), "double_counter")
     async def on_raw_reaction_add(self, payload):
         #TODO: Reaction-bot
         pass
