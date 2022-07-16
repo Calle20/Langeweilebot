@@ -2,6 +2,7 @@ from re import T
 import discord as dc
 import random
 import json
+import os
 
 double=0
 
@@ -234,4 +235,4 @@ class MyClient(dc.Client):
         pass
 
 client=MyClient()
-client.run("BOT_TOKEN")
+client.run(os.environ["BOT_TOKEN"])
