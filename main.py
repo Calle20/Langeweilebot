@@ -3,8 +3,8 @@ import discord as dc
 import random
 import json
 import os
+from discord.ext import commands
 
-double=0
 
 def get_config(name):
     with open("config.json", "r") as f:
@@ -208,7 +208,6 @@ class MyClient(dc.Client):
         if message.channel == c_channel and int(messages[1].content) + 1 != int(message.content):
             await message.delete()
             await message.channel.send("Hey <@"+str(message.author.id)+">! Lern mal zählen bevor du hier anfängst zu zählen!",delete_after=3)
-   
     async def on_typing(self, channel, user, when):
         try:
             double=get_config("double_counter")[str(user)]
@@ -229,10 +228,50 @@ class MyClient(dc.Client):
         double=str(double_count)+" "+str(channel_id)
         save_count(double,str(user), "double_counter")
     async def on_raw_reaction_add(self, payload):
-        #TODO: Reaction-bot
-        pass
-    async def on_member_join(self,member):
-        pass
+        channel=client.get_channel(payload.channel_id)
+        user = payload.member
+        among_us=dc.utils.get(user.guild.roles,name="Among Us Player")
+        programmer=dc.utils.get(user.guild.roles,name="Programmierer")
+        minecraft=dc.utils.get(user.guild.roles,name="Minecraft Player")
+        langeweile=dc.utils.get(user.guild.roles,name="Langeweile")
+        members=dc.utils.get(user.guild.roles,name="members")
+        selfroles=client.get_channel(810178026527653898)
+        rules=client.get_channel(818767129050349578)
+
+        if str(payload.emoji)=="✅"and channel==rules:
+            await user.add_roles(members)
+        if str(payload.emoji)=="🟨"and channel==selfroles:
+            await user.add_roles(among_us)
+        if str(payload.emoji)=="🟦"and channel==selfroles:
+            await user.add_roles(programmer)
+        if str(payload.emoji)=="🟥"and channel==selfroles:
+            await user.add_roles(minecraft)
+        if str(payload.emoji)=="<:Langeweile:997830237947703347>"and channel==selfroles:
+            await user.add_roles(langeweile)
+    async def on_raw_reaction_remove(self, payload):
+        channel=client.get_channel(payload.channel_id)
+        guild = client.get_guild(payload.guild_id)
+        user = await(guild.fetch_member(payload.user_id))
+
+        among_us=dc.utils.get(guild.roles,name="Among Us Player")
+        programmer=dc.utils.get(guild.roles,name="Programmierer")
+        minecraft=dc.utils.get(guild.roles,name="Minecraft Player")
+        langeweile=dc.utils.get(guild.roles,name="Langeweile")
+        members=dc.utils.get(guild.roles,name="members")
+        selfroles=client.get_channel(810178026527653898)
+        rules=client.get_channel(818767129050349578)
+
+        if str(payload.emoji)=="✅"and channel==rules:
+            await user.remove_roles(members)
+        if str(payload.emoji)=="🟨"and channel==selfroles:
+            await user.remove_roles(among_us)
+        if str(payload.emoji)=="🟦"and channel==selfroles:
+            await user.remove_roles(programmer)
+        if str(payload.emoji)=="🟥"and channel==selfroles:
+            await user.remove_roles(minecraft)
+        if str(payload.emoji)=="<:Langeweile:997830237947703347>"and channel==selfroles:
+            await user.remove_roles(langeweile)
 
 client=MyClient()
-client.run(os.environ["BOT_TOKEN"])
+##client.run(os.environ["BOT_TOKEN"])
+client.run("OTg5OTMxMDgxOTc5NTMxMzE1.GF7Q5V.fQ0YOKiFI63X9Z3E67c3JbiqJ4UfYsO7fpdtVo")
