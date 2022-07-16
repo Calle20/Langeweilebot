@@ -1,6 +1,4 @@
-import asyncio
 from re import T
-from time import sleep
 import discord as dc
 import random
 import json
@@ -71,6 +69,27 @@ class MyClient(dc.Client):
     async def on_ready(self):
         print("Eingeloggt")
     async def on_message(self, message):
+        if (message.channel.id==801346971678801930 and not message.content==".") or (message.channel.id==996417869933973504 and not message.content.startswith("lb!") and not message.author.bot):
+            await message.delete()
+            if not message.author.bot:
+                try:
+                    count=get_config("kick_user")[str(message.author)]
+                except:
+                    save_count(0,str(message.author),"kick_user")
+                    count=0
+                count=count+1
+                if count==5 and not str(message.author)=="calle20#3187":
+                    count=0
+                    await message.author.send("Du wurdest vom Langeweile-Server gekickt, weil du in einen Channel etwas verbotenes gesendet hast.")
+                    await message.author.kick()
+                else:
+                    fail=""
+                    if message.channel.id==801346971678801930:
+                        fail="einfache Punkte"
+                    else:
+                        fail="Zahlenraten-Befehle schreiben"
+                        await message.author.send("Verwarnung! In den "+str(message.channel)+" auf dem Langeweile-Server solltest du doch nur "+fail+" schreiben! Noch "+str(5-count)+" Verwarnungen und du wirst gekickt!")
+                save_count(count,str(message.author), "kick_user")
         if message.author==client.user:
             return
         elif message.content.startswith("Hallo bot"):
@@ -183,37 +202,30 @@ class MyClient(dc.Client):
                     delte_json(str(message.author))
         elif message.content.startswith("lb!"):
             await message.channel.send("Das ist mein Prefix. Was gibts? lb!help für Hilfe.")
-        if not message.author.bot and message.channel.id==801346971678801930 and not message.content=="." or message.channel.id==996417869933973504 and not message.content.startswith("lb!"):
+        c_channel = dc.utils.get(message.guild.text_channels, name='counter')
+        messages = await c_channel.history(limit=2).flatten()
+        if message.channel == c_channel and int(messages[1].content) + 1 != int(message.content):
             await message.delete()
-            try:
-                count=get_config("kick_user")[str(message.author)]
-            except:
-                save_count(0,str(message.author),"kick_count")
-                count=0
-            count=count+1
-            if count==5 and not str(message.author)=="calle20#3187":
-                count=0
-                await message.author.send("Du wurdest vom Langeweile-Server gekickt, weil du in einen Channel etwas verbotenes gesendet hast.")
-                await message.author.kick()
-            else:
-                fail=""
-                if message.channel.id==801346971678801930:
-                    fail="einfache Punkte"
-                else:
-                    fail="Zahlenraten-Befehle schreiben"
-                    await message.author.send("Verwarnung! In den "+str(message.channel)+" auf dem Langeweile-Server solltest du doch nur "+fail+" schreiben! Noch "+str(5-count)+" Verwarnungen und du wirst gekickt!")
-            save_count(count,str(message.author), "kick_user")
+            await message.channel.send("Hey <@"+str(message.author.id)+">! Lern mal zählen bevor du hier anfängst zu zählen!",delete_after=3)
+   
     async def on_typing(self, channel, user, when):
         try:
             double=get_config("double_counter")[str(user)]
         except:
-            save_count(0,str(user),"double_counter")
-            double=0
-        if not double==4:
-            double=double+1
+            save_count("0 "+str(channel.id),str(user),"double_counter")
+            double="0 "+str(channel.id)
+        double_count=int(double.split(" ")[0])
+        channel_id=int(double.split(" ")[1])
+        if channel.id==channel_id:
+            if not double_count==4:
+                double_count=double_count+1
+            else:
+                double_count=0
+                await channel.send("Jetzt sende doch endlich mal deine Nachricht <@"+str(user.id)+">. Was dauert da so lange? Romane lese ich nicht gerne!")
         else:
-            double=0
-            await channel.send("Jetzt sende doch endlich mal deine Nachricht <@"+str(user.id)+">. Was dauert da so lange? Romane lese ich nicht gerne!")
+            double_count=0
+            channel_id=channel.id
+        double=str(double_count)+" "+str(channel_id)
         save_count(double,str(user), "double_counter")
     async def on_raw_reaction_add(self, payload):
         #TODO: Reaction-bot
@@ -222,4 +234,4 @@ class MyClient(dc.Client):
         pass
 
 client=MyClient()
-client.run("OTg5OTMxMDgxOTc5NTMxMzE1.GF7Q5V.fQ0YOKiFI63X9Z3E67c3JbiqJ4UfYsO7fpdtVo")
+client.run("BOT_TOKEN")
