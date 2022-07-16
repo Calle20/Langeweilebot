@@ -273,5 +273,5 @@ class MyClient(dc.Client):
             await user.remove_roles(langeweile)
 
 client=MyClient()
-##client.run(os.environ["BOT_TOKEN"])
-client.run("OTg5OTMxMDgxOTc5NTMxMzE1.GF7Q5V.fQ0YOKiFI63X9Z3E67c3JbiqJ4UfYsO7fpdtVo")
+client.run(os.environ["BOT_TOKEN"])
+##client.run("OTg5OTMxMDgxOTc5NTMxMzE1.GF7Q5V.fQ0YOKiFI63X9Z3E67c3JbiqJ4UfYsO7fpdtVo")
