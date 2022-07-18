@@ -203,7 +203,7 @@ class MyClient(dc.Client):
                     delte_json(str(message.author))
         elif message.content.startswith("lb!"):
             await message.channel.send("Das ist mein Prefix. Was gibts? lb!help für Hilfe.")
-        c_channel = dc.utils.get(client.guilds[0].text_channels, name='counter')
+        c_channel = dc.utils.get(message.author.guild.text_channels, name='counter')
         messages = await c_channel.history(limit=2).flatten()
         if message.channel == c_channel and int(messages[1].content) + 1 != int(message.content):
             await message.delete()
@@ -276,5 +276,5 @@ class MyClient(dc.Client):
             await user.remove_roles(langeweile)
 
 client=MyClient()
-client.run(os.environ["BOT_TOKEN"])
-##client.run("OTg5OTMxMDgxOTc5NTMxMzE1.GF7Q5V.fQ0YOKiFI63X9Z3E67c3JbiqJ4UfYsO7fpdtVo")
+##client.run(os.environ["BOT_TOKEN"])
+client.run("OTg5OTMxMDgxOTc5NTMxMzE1.GF7Q5V.fQ0YOKiFI63X9Z3E67c3JbiqJ4UfYsO7fpdtVo")
