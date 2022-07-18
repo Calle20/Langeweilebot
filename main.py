@@ -203,11 +203,14 @@ class MyClient(dc.Client):
                     delte_json(str(message.author))
         elif message.content.startswith("lb!"):
             await message.channel.send("Das ist mein Prefix. Was gibts? lb!help für Hilfe.")
-        c_channel = dc.utils.get(message.guild.text_channels, name='counter')
+        c_channel = dc.utils.get(client.guilds[0].text_channels, name='counter')
         messages = await c_channel.history(limit=2).flatten()
         if message.channel == c_channel and int(messages[1].content) + 1 != int(message.content):
             await message.delete()
             await message.channel.send("Hey <@"+str(message.author.id)+">! Lern mal zählen bevor du hier anfängst zu zählen!",delete_after=3)
+
+        if isinstance(message.channel, dc.channel.DMChannel):
+            print(str(message.author)+": "+message.content)
     async def on_typing(self, channel, user, when):
         try:
             double=get_config("double_counter")[str(user)]
