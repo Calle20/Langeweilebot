@@ -218,15 +218,16 @@ class MyClient(dc.Client):
             double="0 "+str(channel.id)
         double_count=int(double.split(" ")[0])
         channel_id=int(double.split(" ")[1])
-        if channel.id==channel_id:
-            if not double_count==4:
-                double_count=double_count+1
+        if not channel == dc.utils.get(client.get_guild(801127719236534372).text_channels, name='counter'):
+            if channel.id==channel_id:
+                if not double_count==8:
+                    double_count=double_count+1
+                else:
+                    double_count=0
+                    await channel.send("Jetzt sende doch endlich mal deine Nachricht <@"+str(user.id)+">. Was dauert da so lange? Romane lese ich nicht gerne!")
             else:
                 double_count=0
-                await channel.send("Jetzt sende doch endlich mal deine Nachricht <@"+str(user.id)+">. Was dauert da so lange? Romane lese ich nicht gerne!")
-        else:
-            double_count=0
-            channel_id=channel.id
+                channel_id=channel.id
         double=str(double_count)+" "+str(channel_id)
         save_count(double,str(user), "double_counter")
     async def on_raw_reaction_add(self, payload):
